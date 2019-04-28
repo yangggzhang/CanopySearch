@@ -1,6 +1,0 @@
--DROS_BUILD_SHARED_LIBS=1
--DROS_PACKAGE_NAME="dynamixel_workbench_single_manager_gui"
--DROSCONSOLE_BACKEND_LOG4CXX
--o
-/home/zy/Documents/RobotAutonomy/project/build/autonomy_grasp/external/dynamixel-workbench/dynamixel_workbench_single_manager_gui/include/dynamixel_workbench_single_manager_gui/moc_main_window.cpp
-/home/zy/Documents/RobotAutonomy/project/src/autonomy_grasp/external/dynamixel-workbench/dynamixel_workbench_single_manager_gui/include/dynamixel_workbench_single_manager_gui/main_window.hpp

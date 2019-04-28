@@ -1,8 +1,0 @@
-prefix=/home/zy/Documents/RobotAutonomy/project/devel
-
-Name: ddynamic_reconfigure
-Description: Description of ddynamic_reconfigure
-Version: 0.0.6
-Cflags: -I/home/zy/Documents/RobotAutonomy/project/devel/include -I/home/zy/Documents/RobotAutonomy/project/src/realsense-2.2.1/ddynamic_reconfigure/include
-Libs: -L/home/zy/Documents/RobotAutonomy/project/devel/lib -lddynamic_reconfigure
-Requires: message_runtime std_msgs
