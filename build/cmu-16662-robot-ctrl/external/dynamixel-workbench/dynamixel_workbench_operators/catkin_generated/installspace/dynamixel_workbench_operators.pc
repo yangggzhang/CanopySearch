@@ -1,8 +1,0 @@
-prefix=/home/zy/Documents/RobotAutonomy/CanopySearch/install
-
-Name: dynamixel_workbench_operators
-Description: Description of dynamixel_workbench_operators
-Version: 1.0.0
-Cflags: 
-Libs: -L/home/zy/Documents/RobotAutonomy/CanopySearch/install/lib 
-Requires: roscpp dynamixel_workbench_msgs

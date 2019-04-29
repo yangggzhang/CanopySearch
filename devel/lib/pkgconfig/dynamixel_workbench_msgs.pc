@@ -1,8 +1,0 @@
-prefix=/home/zy/Documents/RobotAutonomy/CanopySearch/devel
-
-Name: dynamixel_workbench_msgs
-Description: Description of dynamixel_workbench_msgs
-Version: 1.0.0
-Cflags: -I/home/zy/Documents/RobotAutonomy/CanopySearch/devel/include
-Libs: -L/home/zy/Documents/RobotAutonomy/CanopySearch/devel/lib 
-Requires: std_msgs message_runtime
