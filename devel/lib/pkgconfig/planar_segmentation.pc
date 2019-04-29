@@ -1,0 +1,8 @@
+prefix=/home/zy/Documents/RobotAutonomy/CanopySearch/devel
+
+Name: planar_segmentation
+Description: Description of planar_segmentation
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/zy/Documents/RobotAutonomy/CanopySearch/devel/lib 
+Requires: 

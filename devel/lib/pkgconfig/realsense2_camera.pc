@@ -1,0 +1,8 @@
+prefix=/home/zy/Documents/RobotAutonomy/CanopySearch/devel
+
+Name: realsense2_camera
+Description: Description of realsense2_camera
+Version: 2.2.0
+Cflags: -I/home/zy/Documents/RobotAutonomy/CanopySearch/devel/include
+Libs: -L/home/zy/Documents/RobotAutonomy/CanopySearch/devel/lib -lrealsense2_camera
+Requires: message_runtime roscpp sensor_msgs std_msgs nodelet cv_bridge image_transport ddynamic_reconfigure

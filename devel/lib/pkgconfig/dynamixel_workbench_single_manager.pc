@@ -1,0 +1,8 @@
+prefix=/home/zy/Documents/RobotAutonomy/CanopySearch/devel
+
+Name: dynamixel_workbench_single_manager
+Description: Description of dynamixel_workbench_single_manager
+Version: 1.0.0
+Cflags: -I/home/zy/Documents/RobotAutonomy/CanopySearch/src/cmu-16662-robot-ctrl/external/dynamixel-workbench/dynamixel_workbench_single_manager/include
+Libs: -L/home/zy/Documents/RobotAutonomy/CanopySearch/devel/lib 
+Requires: roscpp dynamixel_workbench_msgs dynamixel_workbench_toolbox

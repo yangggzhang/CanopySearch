@@ -1,0 +1,8 @@
+prefix=/home/zy/Documents/RobotAutonomy/CanopySearch/install
+
+Name: ddynamic_reconfigure
+Description: Description of ddynamic_reconfigure
+Version: 0.0.6
+Cflags: -I/home/zy/Documents/RobotAutonomy/CanopySearch/install/include
+Libs: -L/home/zy/Documents/RobotAutonomy/CanopySearch/install/lib -lddynamic_reconfigure
+Requires: message_runtime std_msgs
