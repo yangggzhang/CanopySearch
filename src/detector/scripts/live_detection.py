@@ -23,19 +23,19 @@ class image_converter:
   def callback(self,data):
     try:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+      self.detector.init_image(cv_image)
     except CvBridgeError as e:
       print(e)
-    if self.detector.frame is None:
-      self.detector.init_image(cv_image)
-      print("finish iniitalizaiton")
+      
 
     if self.approx is None:
         self.approx = self.detector.background()
         print("finish detect black board")
     cv2.drawContours(cv_image, self.approx, -1, (255,255,255), 3)
 
-    apple = self.detector.apple()
+    apple, count = self.detector.apple()
     cv2.drawContours(cv_image, apple, -1, (255, 0, 0), 3)
+    print(count)
 
     leaves = self.detector.leaves()
     cv2.drawContours(cv_image, leaves, -1, ( 0, 255, 0), 3)
