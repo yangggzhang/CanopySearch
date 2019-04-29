@@ -27,9 +27,11 @@ class image_converter:
       print(e)
     if self.detector.frame is None:
       self.detector.init_image(cv_image)
+      print("finish iniitalizaiton")
 
     if self.approx is None:
         self.approx = self.detector.background()
+        print("finish detect black board")
     cv2.drawContours(cv_image, self.approx, -1, (255,255,255), 3)
 
     apple = self.detector.apple()
