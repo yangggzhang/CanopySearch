@@ -3,8 +3,17 @@ import cv2
 import numpy as np
 
 class CanopyDetector():
-    def __init__(self, frame):
+    def __init__(self):
         #
+        self.frame = None
+        self.hsv = None
+        self.x_min = None
+        self.x_max = None
+        self.y_min = None
+        self.y_max = None
+        self.apple_mask = None
+
+    def init_image(self, frame):
         self.frame = frame
         self.hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     
@@ -37,10 +46,25 @@ class CanopyDetector():
         eps_const = 0.05
         epsilon = eps_const*cv2.arcLength(black_cnt,True)
         approx = cv2.approxPolyDP(black_cnt,epsilon,True)
+        
+        self.x_min = approx[0][0][0]
+        self.x_max = approx[0][0][0]
+        self.y_min = approx[0][0][1]
+        self.y_max = approx[0][0][1]
+        for corner in approx:
+            if corner[0][0] < self.x_min:
+                self.x_min = corner[0][0]
+            if corner[0][0] > self.x_max:
+                self.x_max = corner[0][0]
+            if corner[0][1] < self.y_min:
+                self.y_min = corner[0][1]
+            if corner[0][1] > self.y_max:
+                self.y_max = corner[0][1]
 
         return [approx]
     
     def apple(self):
+        count = 0
         # Range for lower red
         lower_red = np.array([0,120,70])
         upper_red = np.array([10,255,255])
@@ -56,10 +80,14 @@ class CanopyDetector():
 
         red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
         red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_CLOSE, np.ones((3,3),np.uint8))
+        if self.apple_mask is None:
+            self.apple_mask = red_mask
+        else:
+            self.apple_mask = cv2.bitwise_or(red_mask, self.apple_mask)
         
         #creating an inverted mask to segment out the cloth from the frame 
         #Segmenting the cloth out of the frame using bitwise and with the inverted mask
-        red_img = cv2.bitwise_and(self.frame,self.frame,mask=red_mask)
+        red_img = cv2.bitwise_and(self.frame,self.frame,mask=self.apple_mask)
 
         imgray = cv2.cvtColor(red_img,cv2.COLOR_BGR2GRAY)
 
@@ -70,8 +98,14 @@ class CanopyDetector():
         #filter countours based on size
         for c in contours:
             if cv2.contourArea(c) >= 200:
-                filtered_countours.append(c)
-        return filtered_countours
+                M = cv2.moments(c)
+                cx = M['m10']/M['m00']
+                cy = M['m01']/M['m00']
+                if cx >= self.x_min and cx <= self.x_max and cy >= self.y_min and cy <= self.y_max:
+                    filtered_countours.append(c)
+                    count = count + 1
+                
+        return filtered_countours, count
 
     def leaves(self):
         sensitivity = 30

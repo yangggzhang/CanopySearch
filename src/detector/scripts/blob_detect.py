@@ -14,8 +14,15 @@ cv2.drawContours(img, approx, -1, (255,255,255), 3)
 cv2.imshow("black_coutour", img)
 cv2.waitKey(0)
 
-apple = detector.apple()
+apple, count = detector.apple()
 cv2.drawContours(img, apple, -1, (255, 0, 0), 3)
+print(count)
+cv2.imshow("apple", img)
+cv2.waitKey(0)
+
+apple, count = detector.apple()
+cv2.drawContours(img, apple, -1, (255, 0, 0), 3)
+print(count)
 cv2.imshow("apple", img)
 cv2.waitKey(0)
 

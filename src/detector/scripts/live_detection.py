@@ -15,26 +15,27 @@ class image_converter:
 
   def __init__(self):
     self.image_pub = rospy.Publisher("ros_image",Image)
-
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback)
     self.approx = None
+    self.detector = CanopyDetector()
 
   def callback(self,data):
     try:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print(e)
+    if self.detector.frame is None:
+      self.detector.init_image(cv_image)
 
-    detector = CanopyDetector(cv_image)
     if self.approx is None:
-        self.approx = detector.background()
+        self.approx = self.detector.background()
     cv2.drawContours(cv_image, self.approx, -1, (255,255,255), 3)
 
-    apple = detector.apple()
+    apple = self.detector.apple()
     cv2.drawContours(cv_image, apple, -1, (255, 0, 0), 3)
 
-    leaves = detector.leaves()
+    leaves = self.detector.leaves()
     cv2.drawContours(cv_image, leaves, -1, ( 0, 255, 0), 3)
 
     cv2.imshow("Image window", cv_image)
