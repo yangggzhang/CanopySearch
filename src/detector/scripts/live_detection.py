@@ -25,13 +25,26 @@ class image_converter:
     self.start_point = None
     self.target_point = None
     self.z = 0.4435
+    self.P = [614.357421875, 0.0, 310.2319641113281, 0.0, 0.0, 614.494140625, 244.32691955566406, 0.0, 0.0, 0.0, 1.0, 0.0]
+    self.T = np.array([[-0.26258097, -0.96485145,  0.01062577,  0.02905107],
+                       [-0.0808903,  0.01103792, -0.99666189,  0.48671212], 
+                       [0.96151339, -0.26256397, -0.08094547, 0.21650044],
+                       [0.0,0.0,0.0,1.0]])
   
-  def project(self, x, y, z):
-    P = [-0.26258097, -0.96485145,  0.01062577,  0.02905107, -0.0808903,  0.01103792, -0.99666189,  0.48671212, 0.96151339, -0.26256397, -0.08094547, 0.21650044]
-    proj_x = P[0] * x + P[1] * y + P[2] * z + P[3]
-    proj_y = P[4] * x + P[5] * y + P[6] * z + P[7]
-    proj_z = P[8] * x + P[9] * y + P[10] * z + P[11]
-    return proj_x, proj_y, proj_z
+  def project(self, x, y):
+    A = np.array([[P[0], P[1], -x], 
+                  [P[4], P[5], -y],
+                  [P[8], P[9], -1]])
+    B = np.array([[-P[3] - P[2]*self.z],
+                  [-P[7] - P[6]*self.z],
+                  [-P[11]-P[10]*self.z]]) 
+    B = np.array([[-P[3] - P[2]*z],
+                  [-P[7] - P[6]*z],
+                  [-P[11]-P[10]*z]]) 
+    loc = np.matmul(np.linalg.inv(A), B)
+    carmera_xyz = np.vstack((loc, [1]))
+    proj_xyz = np.matmul(np.linalg.inv(self.T), carmera_xyz)    
+    return proj_xyz[0], proj_xyz[1], proj_xyz[2]
 
   def move_arm_client(self, x0, y0, z0, x1, y1, z1):
     rospy.wait_for_service('move_arm')
