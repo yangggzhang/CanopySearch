@@ -9,7 +9,7 @@ project(detector)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
-  OpenCV
+##  OpenCV
   cv_bridge
   rospy
   std_msgs
@@ -120,7 +120,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
+#  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
