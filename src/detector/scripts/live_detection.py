@@ -46,15 +46,15 @@ class image_converter:
     proj_xyz = np.matmul(np.linalg.inv(self.T), carmera_xyz)    
     return proj_xyz[0], proj_xyz[1], proj_xyz[2]
 
-  def move_arm_client(self, x0, y0, z0, x1, y1, z1):
-    rospy.wait_for_service('move_arm')
-    try:
-        move_ser = rospy.ServiceProxy('move_arm', MovePos)
-        print("sending")
-        resp = move_ser(x0, y0, z0, x1, y1, z1)
-        return resp.reached
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+  # def move_arm_client(self, x0, y0, z0, x1, y1, z1):
+  #   rospy.wait_for_service('move_arm')
+  #   try:
+  #       move_ser = rospy.ServiceProxy('move_arm', MovePos)
+  #       print("sending")
+  #       resp = move_ser(x0, y0, z0, x1, y1, z1)
+  #       return resp.reached
+  #   except rospy.ServiceException, e:
+  #       print "Service call failed: %s"%e
 
   def callback(self,data):
     try:
@@ -77,12 +77,18 @@ class image_converter:
     cv2.drawContours(cv_image, leaves, -1, ( 0, 255, 0), 3)
 
     if not self.progress:
-      target = random.choice(targets)
-      self.start_point = (points[0], points[1])
-      self.target_point = (points[2], points[3])
-      self.progress = self.move_arm_client()
-    
-    
+      points = random.choice(targets)
+      self.start_point = project(points[0], points[1])
+      self.target_point = project(points[2], points[3])
+      cv2.circle(cv_image,(points[0], points[1]), 10, (255,0,0), -1)
+      cv2.circle(cv_image,(points[0], points[1]), 10, (255,0,0), -1)
+
+      print("Point 1", self.start_point)
+      print("Point 2", self.target_point)
+      self.progress = True
+      
+      # self.progress = self.move_arm_client(self.start_point[0], self.start_point[1], self.start_point[2],
+      #                                      self.target_point[0],self.target_point[1],self.target_point[2])
 
     cv2.imshow("Image window", cv_image)
     cv2.waitKey(3)
