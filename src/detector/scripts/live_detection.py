@@ -24,6 +24,7 @@ class image_converter:
     self.progress = False
     self.start_point = None
     self.target_point = None
+    self.z = 0.4435
   
   def project(self, x, y, z):
     P = [-0.26258097, -0.96485145,  0.01062577,  0.02905107, -0.0808903,  0.01103792, -0.99666189,  0.48671212, 0.96151339, -0.26256397, -0.08094547, 0.21650044]
@@ -31,7 +32,7 @@ class image_converter:
     proj_y = P[4] * x + P[5] * y + P[6] * z + P[7]
     proj_z = P[8] * x + P[9] * y + P[10] * z + P[11]
     return proj_x, proj_y, proj_z
-    
+
   def move_arm_client(self, x0, y0, z0, x1, y1, z1):
     rospy.wait_for_service('move_arm')
     try:
