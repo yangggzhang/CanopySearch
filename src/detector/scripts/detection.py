@@ -12,6 +12,8 @@ class CanopyDetector():
         self.y_min = None
         self.y_max = None
         self.apple_mask = None
+        self.empty_mask = None
+        self.leaves_centroids = []
 
     def init_image(self, frame):
         self.frame = frame
@@ -97,7 +99,7 @@ class CanopyDetector():
         filtered_countours = []
         #filter countours based on size
         for c in contours:
-            if cv2.contourArea(c) >= 200:
+            if cv2.contourArea(c) >= 600:
                 M = cv2.moments(c)
                 cx = M['m10']/M['m00']
                 cy = M['m01']/M['m00']
@@ -108,30 +110,35 @@ class CanopyDetector():
         return filtered_countours, count
 
     def leaves(self):
-        sensitivity = 30
+        sensitivity = 20
         # Range for green
-        lower_green = np.array([ max(  0, 60 - sensitivity), 100,  50])
+        lower_green = np.array([ max(  0, 60 - sensitivity), 60,  40])
         upper_green = np.array([ min(255, 60 + sensitivity), 255, 255])
         green_mask = cv2.inRange(self.hsv, lower_green, upper_green)
-
+        green_mask = cv2.dilate(green_mask,np.ones((3,3),np.uint8),iterations = 1)
         green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
         green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, np.ones((3,3),np.uint8))
         
         #creating an inverted mask to segment out the cloth from the frame 
         #Segmenting the cloth out of the frame using bitwise and with the inverted mask
         green_img = cv2.bitwise_and(self.frame, self.frame, mask = green_mask)
-
         # cv2.imshow("coutours", green_img)
         # cv2.waitKey(0)
 
         green_imgray = cv2.cvtColor(green_img,cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(green_imgray,0,180,0)
         im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
+    
         filtered_countours = []
+        self.leaves_centroids = []
         #filter countours based on size
         for c in contours:
-            if cv2.contourArea(c) >= 200:
-                filtered_countours.append(c)
-        
+            if cv2.contourArea(c) >= 1000:
+                hull = cv2.convexHull(c)
+                filtered_countours.append(hull)
+                M = cv2.moments(hull)
+                cx = M['m10']/M['m00']
+                cy = M['m01']/M['m00']
+                self.leaves_centroids.append([cx, cy])
+        print(self.leaves_centroids)
         return filtered_countours
