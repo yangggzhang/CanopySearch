@@ -32,8 +32,8 @@ GRIPPER_LOSE = 1.0
 GRIPPER_TIGHT = -0.5
 
 offset_x = 0.2
-offset_y = -0.15
-offset_z = 0.1
+offset_y = 0.0
+offset_z = 0.0
 
 def open_gripper(pub):
     empty_msg = Empty()
@@ -75,7 +75,7 @@ def execute(target_position, gripper =  0.0, alpha = 0.0):
             target_joint.append(0.0)
 
             set_arm_joint(pub, target_joint)
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         else:
             print('No IK Solution found for '+ str(target_position[i,:]))
@@ -83,8 +83,10 @@ def execute(target_position, gripper =  0.0, alpha = 0.0):
 def move_arm(x0, y0, z0, x1, y1, z1):
     # go to x y z + threshold
     
-    traj = linear_path( x0, y0 , z0, x1, y1, z1)
-    execute(traj, gripper = GRIPPER_LOSE)
+    traj0 = linear_path( x0, y0 , z0, x1, y1, z1)
+    execute(traj0, gripper = GRIPPER_LOSE)
+    traj1 = linear_path(x1, y1, z1, offset_x, offset_y, offset_z)
+    execute(traj1, gripper = GRIPPER_LOSE)
     print("finish moving")
     time.sleep(0.1)
 

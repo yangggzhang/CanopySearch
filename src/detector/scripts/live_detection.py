@@ -24,6 +24,8 @@ class image_converter:
     self.progress = False
     self.start_point = None
     self.target_point = None
+    self.RGB_start_point = None
+    self.RGB_target_point = None
     self.z = 0.4435
     self.P = [614.357421875, 0.0, 310.2319641113281, 0.0, 0.0, 614.494140625, 244.32691955566406, 0.0, 0.0, 0.0, 1.0, 0.0]
     self.T = np.array([[-0.26258097, -0.96485145,  0.01062577,  0.02905107],
@@ -32,15 +34,12 @@ class image_converter:
                        [0.0,0.0,0.0,1.0]])
   
   def project(self, x, y):
-    A = np.array([[P[0], P[1], -x], 
-                  [P[4], P[5], -y],
-                  [P[8], P[9], -1]])
-    B = np.array([[-P[3] - P[2]*self.z],
-                  [-P[7] - P[6]*self.z],
-                  [-P[11]-P[10]*self.z]]) 
-    B = np.array([[-P[3] - P[2]*z],
-                  [-P[7] - P[6]*z],
-                  [-P[11]-P[10]*z]]) 
+    A = np.array([[self.P[0], self.P[1], -x], 
+                  [self.P[4], self.P[5], -y],
+                  [self.P[8], self.P[9], -1]])
+    B = np.array([[-self.P[3] - self.P[2]*self.z],
+                  [-self.P[7] - self.P[6]*self.z],
+                  [-self.P[11]- self.P[10]*self.z]]) 
     loc = np.matmul(np.linalg.inv(A), B)
     carmera_xyz = np.vstack((loc, [1]))
     proj_xyz = np.matmul(np.linalg.inv(self.T), carmera_xyz)    
@@ -78,10 +77,10 @@ class image_converter:
 
     if not self.progress:
       points = random.choice(targets)
-      self.start_point = project(points[0], points[1])
-      self.target_point = project(points[2], points[3])
-      cv2.circle(cv_image,(points[0], points[1]), 10, (255,0,0), -1)
-      cv2.circle(cv_image,(points[0], points[1]), 10, (255,0,0), -1)
+      self.RGB_start_point = (points[0], points[1])
+      self.RGB_target_point = (points[2], points[3])
+      self.start_point = self.project(points[0], points[1])
+      self.target_point = self.project(points[2], points[3])
 
       print("Point 1", self.start_point)
       print("Point 2", self.target_point)
@@ -89,6 +88,10 @@ class image_converter:
       
       # self.progress = self.move_arm_client(self.start_point[0], self.start_point[1], self.start_point[2],
       #                                      self.target_point[0],self.target_point[1],self.target_point[2])
+    cv2.circle(cv_image,self.RGB_start_point, 10, (255,0,0), -1)
+    cv2.circle(cv_image,self.RGB_target_point, 10, (255,0,0), -1)
+    # print("Point 1", self.start_point)
+    # print("Point 2", self.target_point)
 
     cv2.imshow("Image window", cv_image)
     cv2.waitKey(3)
