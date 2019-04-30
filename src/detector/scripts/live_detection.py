@@ -13,16 +13,19 @@ import numpy as np
 import random
 from move_canopy.srv import MovePos
 from move_canopy.msg import push
+from move_canopy.msg import confirm
 
 class image_converter:
 
   def __init__(self):
     self.image_pub = rospy.Publisher("ros_image",Image)
+    self.arm_pub = rospy.Publisher('push', push)
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback)
+    self.grab_sub = rospy.Subscriber("grab_status", confirm, self.confirm_callback)
     self.approx = None
     self.detector = CanopyDetector()
-    self.progress = False
+    self.grab_state = False # true finished
     self.start_point = None
     self.target_point = None
     self.RGB_start_point = None
@@ -33,6 +36,9 @@ class image_converter:
                        [-0.0808903,  0.01103792, -0.99666189,  0.48671212], 
                        [0.96151339, -0.26256397, -0.08094547, 0.21650044],
                        [0.0,0.0,0.0,1.0]])
+  
+  def confirm_callback(data):
+    self.grab_state = data.confirm
   
   def project(self, x, y):
     A = np.array([[self.P[0], self.P[1], -x], 
@@ -45,16 +51,6 @@ class image_converter:
     carmera_xyz = np.vstack((loc, [1]))
     proj_xyz = np.matmul(np.linalg.inv(self.T), carmera_xyz)    
     return proj_xyz[0], proj_xyz[1], proj_xyz[2]
-
-  # def move_arm_client(self, x0, y0, z0, x1, y1, z1):
-  #   rospy.wait_for_service('move_arm')
-  #   try:
-  #       move_ser = rospy.ServiceProxy('move_arm', MovePos)
-  #       print("sending")
-  #       resp = move_ser(x0, y0, z0, x1, y1, z1)
-  #       return resp.reached
-  #   except rospy.ServiceException, e:
-  #       print "Service call failed: %s"%e
 
   def callback(self,data):
     try:
@@ -76,16 +72,24 @@ class image_converter:
     leaves, targets = self.detector.leaves()
     cv2.drawContours(cv_image, leaves, -1, ( 0, 255, 0), 3)
 
-    if not self.progress:
+    if not self.grab_state:
       points = random.choice(targets)
       self.RGB_start_point = (points[0], points[1])
       self.RGB_target_point = (points[2], points[3])
       self.start_point = self.project(points[0], points[1])
       self.target_point = self.project(points[2], points[3])
 
+      msg = push()
+      msg.x0 = self.start_point[0]
+      msg.y0 = self.start_point[1]
+      msg.z0 = self.start_point[2]
+      msg.x1 = self.target_point[0]
+      msg.y1 = self.target_point[1]
+      msg.z1 = self.target_point[2]
+      self.arm_pub.publish(msg)
+
       print("Point 1", self.start_point)
       print("Point 2", self.target_point)
-      self.progress = True
       
       # self.progress = self.move_arm_client(self.start_point[0], self.start_point[1], self.start_point[2],
       #                                      self.target_point[0],self.target_point[1],self.target_point[2])

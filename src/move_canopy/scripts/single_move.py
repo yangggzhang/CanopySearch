@@ -12,6 +12,7 @@ from analytic_ik import AnalyticInverseKinematics
 from rospy_tutorials.msg import Floats
 from std_msgs.msg import Empty, Bool
 from move_canopy.srv import MovePos, MovePosResponse
+from move_canopy.msg import push, confirm
 
 ROSTOPIC_SET_ARM_JOINT = '/goal_dynamixel_position'
 ROSTOPIC_SET_PAN_JOINT = '/pan/command'
@@ -35,82 +36,79 @@ offset_x = 0.2
 offset_y = 0.0
 offset_z = 0.0
 
-def open_gripper(pub):
-    empty_msg = Empty()
-    rospy.loginfo('Opening gripper')
-    pub.publish(empty_msg)
+class manipulator:
 
-def close_gripper(pub):
-    empty_msg = Empty()
-    rospy.loginfo('Closing gripper')
-    pub.publish(empty_msg)
+    def __init__(self):
+        self.confirm_pub = rospy.Publisher("grab_status",confirm)
+        self.target_sub = rospy.Subscriber("push", push, self.push_callback)
 
-def home_arm(pub):
-    rospy.loginfo('Going to arm home pose')
-    set_arm_joint(pub, np.zeros(5))
-    rospy.sleep(1)
+    def open_gripper(pub):
+        empty_msg = Empty()
+        rospy.loginfo('Opening gripper')
+        pub.publish(empty_msg)
 
-def set_arm_joint(pub, joint_target):
-    joint_state = JointState()
-    joint_state.position = tuple(joint_target)
-    pub.publish(joint_state)
+    def close_gripper(pub):
+        empty_msg = Empty()
+        rospy.loginfo('Closing gripper')
+        pub.publish(empty_msg)
 
-def linear_path(min_x, min_y, min_z , max_x, max_y, max_z, n_samples = 5):
-    x = np.linspace(min_x, max_x, n_samples)
-    y = np.linspace(min_y, max_y, n_samples)
-    xv, yv = np.meshgrid(x, y)
-    x = xv.flatten()
-    y = yv.flatten()
-    z = np.linspace(min_z, max_z, len(x))
-    target_position = np.array([x,y,z]).T
-    return target_position
+    def home_arm(pub):
+        rospy.loginfo('Going to arm home pose')
+        set_arm_joint(pub, np.zeros(5))
+        rospy.sleep(1)
 
-def execute(target_position, gripper =  0.0, alpha = 0.0):
-    n, _ = target_position.shape
-    for i in range(n):
+    def set_arm_joint(pub, joint_target):
+        joint_state = JointState()
+        joint_state.position = tuple(joint_target)
+        pub.publish(joint_state)
 
-        target_joint = ik_solver.ik(target_position[i,0], target_position[i,1], target_position[i,2], alpha)
+    def linear_path(min_x, min_y, min_z , max_x, max_y, max_z, n_samples = 5):
+        x = np.linspace(min_x, max_x, n_samples)
+        y = np.linspace(min_y, max_y, n_samples)
+        xv, yv = np.meshgrid(x, y)
+        x = xv.flatten()
+        y = yv.flatten()
+        z = np.linspace(min_z, max_z, len(x))
+        target_position = np.array([x,y,z]).T
+        return target_position
 
-        if target_joint is not None:
-            target_joint.append(0.0)
+    def execute(target_position, gripper =  0.0, alpha = 0.0):
+        n, _ = target_position.shape
+        for i in range(n):
 
-            set_arm_joint(pub, target_joint)
-            time.sleep(0.5)
+            target_joint = ik_solver.ik(target_position[i,0], target_position[i,1], target_position[i,2], alpha)
 
-        else:
-            print('No IK Solution found for '+ str(target_position[i,:]))
+            if target_joint is not None:
+                target_joint.append(0.0)
 
-def move_arm(x0, y0, z0, x1, y1, z1):
-    # go to x y z + threshold
-    
-    traj0 = linear_path( x0, y0 , z0, x1, y1, z1)
-    execute(traj0, gripper = GRIPPER_LOSE)
-    traj1 = linear_path(x1, y1, z1, offset_x, offset_y, offset_z)
-    execute(traj1, gripper = GRIPPER_LOSE)
-    print("finish moving")
-    time.sleep(0.1)
+                set_arm_joint(pub, target_joint)
+                time.sleep(0.5)
 
-def callback(req):
-    move_arm(req.x0, req.y0, req.z0, req.x1, req.y1, req.z1)
-    resp = MovePosResponse()
-    resp.reached = True
-    return resp
-    # grab(data.data[0],data.data[1],data.data[2])
+            else:
+                print('No IK Solution found for '+ str(target_position[i,:]))
+
+    def move_arm(x0, y0, z0, x1, y1, z1):
+        # go to x y z + threshold
+        
+        traj0 = linear_path( x0, y0 , z0, x1, y1, z1)
+        execute(traj0, gripper = GRIPPER_LOSE)
+        traj1 = linear_path(x1, y1, z1, offset_x, offset_y, offset_z)
+        execute(traj1, gripper = GRIPPER_LOSE)
+        time.sleep(0.1)
+
+    def push_callback(data):
+        move_arm(data.x0, data.y0, data.z0, data.x1, data.y1, data.z1)
+        msg = confirm()
+        msg.confirm = True
+        self.confirm_pub.publish(msg)
 
 def main():
+    arm = manipulator()
     rospy.init_node('ARM', anonymous=True)
-    print("start")
-    s = rospy.Service('move_arm', MovePos, callback)
-    # home_arm(pub)
-    # close_gripper(pub)
-    # rospy.Subscriber("test", Bool, callback, queue_size= 1)
-    # rospy.Subscriber("floats", Floats, callback, queue_size= 1)
-    # grab(-0.0630809, -0.249283, 0.146288)
-    print("finish")
-    rospy.spin()
-    # home_arm(pub)
-    
-
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        print("Shutting down")
 
 if __name__ == "__main__":
     main()
