@@ -80,25 +80,16 @@ def execute(target_position, gripper =  0.0, alpha = 0.0):
         else:
             print('No IK Solution found for '+ str(target_position[i,:]))
 
-def update_position(x, y, z):
-    offset_x = x
-    offset_y = y
-    offset_z = z
-
-
-def move_arm(x, y, z):
+def move_arm(x0, y0, z0, x1, y1, z1):
     # go to x y z + threshold
     
-    traj = linear_path( offset_x, offset_y , offset_z, x, y, z + z_threshold)
+    traj = linear_path( x0, y0 , z0, x1, y1, z1)
     execute(traj, gripper = GRIPPER_LOSE)
     print("finish moving")
-    update_position(x, y, z)
     time.sleep(0.1)
 
-
 def callback(req):
-    move_arm(req.x, req.y, req.z)
-    print(req.x, req.y, req.z)
+    move_arm(req.x0, req.y0, req.z0, req.x1, req.y1, req.z1)
     resp = MovePosResponse()
     resp.reached = True
     return resp

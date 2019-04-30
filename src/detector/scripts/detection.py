@@ -13,7 +13,6 @@ class CanopyDetector():
         self.y_max = None
         self.apple_mask = None
         self.empty_mask = None
-        self.leaves_centroids = []
 
     def init_image(self, frame):
         self.frame = frame
@@ -109,6 +108,21 @@ class CanopyDetector():
                 
         return filtered_countours, count
 
+    def target_points(self, contours): # select left most and right most points
+        left_x = contours[0][0][0]
+        left_y = contours[0][0][1]
+        right_x = contours[0][0][0]
+        right_y = contours[0][0][1]
+        for corner in contours:
+            if corner[0][0] < left_x:
+                left_y = corner[0][1]
+                left_x = corner[0][0]
+            if corner[0][0] > right_x:
+                right_y = corner[0][1]
+                right_x = corner[0][0]
+        return [left_x, left_y, right_x, right_y]
+
+
     def leaves(self):
         sensitivity = 20
         # Range for green
@@ -130,15 +144,12 @@ class CanopyDetector():
         im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     
         filtered_countours = []
-        self.leaves_centroids = []
+        points = []
         #filter countours based on size
         for c in contours:
             if cv2.contourArea(c) >= 1000:
                 hull = cv2.convexHull(c)
                 filtered_countours.append(hull)
-                M = cv2.moments(hull)
-                cx = M['m10']/M['m00']
-                cy = M['m01']/M['m00']
-                self.leaves_centroids.append([cx, cy])
-        print(self.leaves_centroids)
-        return filtered_countours
+                points.append(self.target_points(hull))
+        
+        return filtered_countours, points
