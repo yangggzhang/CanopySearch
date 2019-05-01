@@ -89,10 +89,10 @@ class image_converter:
       msg = Push()
       msg.x0 = self.start_point[0]
       msg.y0 = self.start_point[1]
-      msg.z0 = self.start_point[2]
+      msg.z0 = self.start_point[2] - 0.2
       msg.x1 = self.target_point[0]
       msg.y1 = self.target_point[1]
-      msg.z1 = self.target_point[2]
+      msg.z1 = self.target_point[2] - 0.2
       print(msg)
       print("PUBLISH")
       self.arm_pub.publish(msg)

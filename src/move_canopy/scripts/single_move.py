@@ -39,7 +39,7 @@ offset_z = 0.0
 class manipulator:
 
     def __init__(self):
-        self.confirm_pub = rospy.Publisher("grab_status",Confirm)
+        self.confirm_pub = rospy.Publisher("grab_status",Confirm, queue_size = 1)
         self.target_sub = rospy.Subscriber("push", Push, self.push_callback)
 
     def open_gripper(self, pub):
@@ -54,7 +54,7 @@ class manipulator:
 
     def home_arm(self, pub):
         rospy.loginfo('Going to arm home pose')
-        set_arm_joint(pub, np.zeros(5))
+        self.set_arm_joint(pub, np.zeros(5))
         rospy.sleep(1)
 
     def set_arm_joint(self, pub, joint_target):
@@ -81,7 +81,7 @@ class manipulator:
             if target_joint is not None:
                 target_joint.append(0.0)
 
-                set_arm_joint(pub, target_joint)
+                self.set_arm_joint(pub, target_joint)
                 time.sleep(0.5)
 
             else:
@@ -90,15 +90,15 @@ class manipulator:
     def move_arm(self, x0, y0, z0, x1, y1, z1):
         # go to x y z + threshold
         
-        traj0 = linear_path( x0, y0 , z0, x1, y1, z1)
-        execute(traj0, gripper = GRIPPER_LOSE)
-        traj1 = linear_path(x1, y1, z1, offset_x, offset_y, offset_z)
-        execute(traj1, gripper = GRIPPER_LOSE)
+        traj0 = self.linear_path( x0, y0 , z0, x1, y1, z1)
+        self.execute(traj0, gripper = GRIPPER_LOSE)
+        traj1 = self.linear_path(x1, y1, z1, offset_x, offset_y, offset_z)
+        self.execute(traj1, gripper = GRIPPER_LOSE)
         time.sleep(0.1)
 
     def push_callback(self, data):
         print("RECEIVE")
-        move_arm(data.x0, data.y0, data.z0, data.x1, data.y1, data.z1)
+        self.move_arm(data.x0, data.y0, data.z0, data.x1, data.y1, data.z1)
         msg = Confirm()
         msg.confirm = True
         self.confirm_pub.publish(msg)
